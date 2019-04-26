@@ -546,7 +546,7 @@ $.offAll = function () {
 var config = {
 
     // 默认菜单配置
-    menus: ['head', 'bold', 'fontSize', 'fontName', 'italic', 'underline', 'strikeThrough', 'foreColor', 'backColor', 'link', 'list', 'justify', 'quote', 'emoticon', 'image', 'table', 'video', 'code', 'undo', 'redo'],
+    menus: ['head', 'bold', 'fontSize', 'fontName', 'italic', 'underline', 'strikeThrough', 'foreColor', 'backColor', 'link', 'list', 'justify', 'quote', 'emoticon', 'image', 'table', 'video', 'code', 'undo', 'redo', 'wx'],//, 'xtemp'
 
     fontNames: ['宋体', '微软雅黑', 'Arial', 'Tahoma', 'Verdana'],
 
@@ -2634,6 +2634,150 @@ Video.prototype = {
     }
 };
 
+    function Xtemp(editor) {
+        this.editor = editor;
+        this.$elem = $('<div class="w-e-menu"><i class="w-e-icon-temp" style="padding-bottom:3px;">模</i></div>');
+        this.type = 'panel';
+
+        // 当前是否 active 状态
+        this._active = false;
+    }
+    Xtemp.prototype = {
+        constructor: Xtemp,
+
+        onClick: function onClick() {
+            this._createPanel();
+        },
+
+        _createPanel: function _createPanel() {
+            var _this = this;
+
+            // 创建 id
+            var textValId = getRandom('text-val');
+            var btnId = getRandom('btn');
+
+            // 创建 panel
+            var panel = new Panel(this, {
+                width: 350,
+                // 一个 panel 多个 tab
+                tabs: [{
+                    // 标题
+                    title: '微信文章',
+                    // 模板
+                    tpl: '<div>\n                        <input id="' + textValId + '" type="text" class="block" placeholder="https://mp.weixin.qq.com"/>\n                        <div class="w-e-button-container">\n                            <button id="' + btnId + '" class="right">\u786e\u5b9a</button>\n                        </div>\n                    </div>',
+                    // 事件绑定
+                    events: [{
+                        selector: '#' + btnId,
+                        type: 'click',
+                        fn: function fn() {
+                           
+
+
+                            // 返回 true，表示该事件执行完之后，panel 要关闭。否则 panel 不会关闭
+                            return true;
+                        }
+                    }]
+                } // first tab end
+                ] // tabs end
+            }); // panel end
+
+            // 显示 panel
+            panel.show();
+
+            // 记录属性
+            this.panel = panel;
+        },
+
+        // 插入视频
+        _insert: function _insert(val) {
+            var editor = this.editor;
+            editor.cmd.do('insertHTML', val + '<p><br></p>');
+        }
+    };
+
+    function Wx(editor) {
+        this.editor = editor;
+        this.$elem = $('<div class="w-e-menu"><i class="w-e-icon-wx" style="padding-bottom:3px;">&nbsp; &nbsp;</i></div>');
+        this.type = 'panel';
+
+        // 当前是否 active 状态
+        this._active = false;
+    }
+    Wx.prototype = {
+        constructor: Wx,
+
+        onClick: function onClick() {
+            this._createPanel();
+        },
+
+        _createPanel: function _createPanel() {
+            var _this = this;
+
+            // 创建 id
+            var textValId = getRandom('text-val');
+            var btnId = getRandom('btn');
+
+            // 创建 panel
+            var panel = new Panel(this, {
+                width: 350,
+                // 一个 panel 多个 tab
+                tabs: [{
+                    // 标题
+                    title: '微信文章',
+                    // 模板
+                    tpl: '<div>\n                        <input id="' + textValId + '" type="text" class="block" placeholder="https://mp.weixin.qq.com"/>\n                        <div class="w-e-button-container">\n                            <button id="' + btnId + '" class="right">\u786e\u5b9a</button>\n                        </div>\n                    </div>',
+                    // 事件绑定
+                    events: [{
+                        selector: '#' + btnId,
+                        type: 'click',
+                        fn: function fn() {
+                            var $text = $('#' + textValId);
+                            var val = $text.val().trim();
+                            if (val.indexOf("https://mp.weixin.qq.com") != -1) { 
+
+                                var uploadImgParams = config.uploadImgParams || {};
+                                uploadImgParams['u'] = val;
+                                var ajax = new HAjax(_this.editor);
+                                ajax.post("other/wxArticle",uploadImgParams,function(r){
+                                           var div = document.createElement("div");
+                                                div.innerHTML = r;
+                                                div.style = "display:none;";
+                                    document.body.appendChild(div);
+                                    var html = "", me = document.getElementById("media");
+                                    if (me) {
+                                        try { eval(me.children[0].innerHTML); me.removeChild(me.children[0]); html = "<div>" + me.innerHTML.replace(" data-backsrc"," src")+"</div>"; } catch (e) { }
+                                    }
+                                    _this._insert(html+document.getElementById("js_content").innerHTML);
+                                    div.innerHTML = "";
+                                    
+                                    
+                                          });
+                               return true;
+
+                            }
+
+
+                            // 返回 true，表示该事件执行完之后，panel 要关闭。否则 panel 不会关闭
+                            return true;
+                        }
+                    }]
+                } // first tab end
+                ] // tabs end
+            }); // panel end
+
+            // 显示 panel
+            panel.show();
+
+            // 记录属性
+            this.panel = panel;
+        },
+
+        // 插入视频
+        _insert: function _insert(val) {
+            var editor = this.editor;
+            editor.cmd.do('insertHTML', val + '<p><br></p>');
+        }
+    };
 /*
     menu - img
 */
@@ -2648,7 +2792,7 @@ function Image(editor) {
     // 当前是否 active 状态
     this._active = false;
 }
-
+    
 // 原型
 Image.prototype = {
     constructor: Image,
@@ -2892,7 +3036,8 @@ MenuConstructors.table = Table;
 MenuConstructors.video = Video;
 
 MenuConstructors.image = Image;
-
+MenuConstructors.wx = Wx;
+MenuConstructors.xtemp= Xtemp
 /*
     菜单集合
 */
@@ -4004,10 +4149,99 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 } : function (obj) {
   return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
 };
+/**
+ * ajax 请求
+ * @param {any} editor
+ */
+function HAjax(editor) {
+    this.editor = editor;
+    this.post = function (u, p,fun) {
+        
+        var editor = this.editor;
+        var config = editor.config;
+        var uploadImgServer = config.uploadImgServer;
+        var uploadImgParams = p || {};
+        var uploadImgHeaders = config.uploadImgHeaders || {};
+        var timeout = config.uploadImgTimeout || 3000;
+        var withCredentials = config.withCredentials;
+        if (withCredentials == null) {
+            withCredentials = false;
+        }
+        var customUploadImg = config.customUploadImg;
 
+        if (!customUploadImg) {
+            if (!uploadImgServer && !uploadImgShowBase64) {
+                return;
+            }
+        }
+
+            // ------------------------------ 验证文件信息 ------------------------------
+        var formdata = new FormData();
+        // ------------------------------ 上传图片 ------------------------------
+        if (uploadImgServer && typeof uploadImgServer === 'string') {
+            // 添加参数
+            var uploadImgServerArr = uploadImgServer.split('#');
+            uploadImgServer = uploadImgServerArr[0];
+            var uploadImgServerHash = uploadImgServerArr[1] || '';
+            objForEach(uploadImgParams, function (key, val) {
+                formdata.append(key, val);
+            });
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', uploadImgServer.replace(/other\/upload/, u));
+            // 设置超时
+            xhr.timeout = timeout;
+            xhr.ontimeout = function () {
+                alert('获取内容超时');
+            };
+            // 监控 progress
+            if (xhr.upload) {
+                xhr.upload.onprogress = function (e) {
+                    var percent = void 0;
+                    // 进度条
+                    var progressBar = new Progress(editor);
+                    if (e.lengthComputable) {
+                        percent = e.loaded / e.total;
+                        progressBar.show(percent);
+                    }
+                };
+            }
+
+            // 返回数据
+            xhr.onreadystatechange = function () {
+                var result = void 0;
+                if (xhr.readyState === 4) {
+                    if (xhr.status < 200 || xhr.status >= 300) {
+                        alert('返回结果 errno=' + result.errno);
+                    } else {
+                        fun(xhr.responseText);                       
+                    }
+
+                }
+            };
+
+            // 自定义 headers
+            objForEach(uploadImgHeaders, function (key, val) {
+                xhr.setRequestHeader(key, val);
+            });
+
+            // 跨域传 cookie
+            xhr.withCredentials = withCredentials;
+
+            // 发送请求
+            xhr.send(formdata);
+
+            // 注意，要 return 。不去操作接下来的 base64 显示方式
+            return true;
+        }
+
+       
+    }
+}
 /*
     上传图片
 */
+
 
 // 构造函数
 function UploadImg(editor) {
@@ -4663,7 +4897,7 @@ var inlinecss = '.w-e-toolbar,.w-e-text-container,.w-e-menu-panel {  padding: 0;
 // 将 css 代码添加到 <style> 中
 var style = document.createElement('style');
 style.type = 'text/css';
-style.innerHTML = inlinecss;
+    style.innerHTML = inlinecss + '.w-e-icon-wx { background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABUAAAARCAYAAAAyhueAAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMDY3IDc5LjE1Nzc0NywgMjAxNS8wMy8zMC0yMzo0MDo0MiAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTUgKFdpbmRvd3MpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjI3NjI1MEJBNjBFMTExRTk4Q0RGODVERUU2RjAyQjJFIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjI3NjI1MEJCNjBFMTExRTk4Q0RGODVERUU2RjAyQjJFIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6Mjc2MjUwQjg2MEUxMTFFOThDREY4NURFRTZGMDJCMkUiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6Mjc2MjUwQjk2MEUxMTFFOThDREY4NURFRTZGMDJCMkUiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7rJ8//AAABjElEQVR42ozUwSsEYRjH8d21ISWEg3IRpZQiF4pcliQnIYoS2pMkB6JEoVwc5ChtEspFUuIi/AHEgYRNNgcHJGxkbb6vnqm3t91996nPzj4zs7+d9515x+33+11a5UHtaEEJcvCKc+xiFW8uS3m07wMIYg41yIdXtj4s4hbdyYZOYBmZlvPVSNYwagutxoz0ERl6r3HeGOoQln4etYlCR7QrVqEhPBjnhUREejfG44WqOavX+nS5KWZtyPYAW3hCGspwh28zNNdlr2f0oADDKNeOqSnZwSwuneHfWAK/0IpBrBiBqjLQhVN0OKGbltAFdKJZ+gs8asedXk3HOqo88qPrBKHbsiCc6sO01vdrvZrOKfXxiSbso9QIfEEhUrR9J0jV+mOj9zmP0j3a4jxynhhz6E3QR/WmAVeyTMNy1dnyiEVjhMerPT30SNZ3NMaJAZk7W71jUv/3sziBqoZwaAn8QLu66ckOSU1Ho4QHjWM/cjEBWXFJz5OqXyyhGEXygqlAFirlffBffwIMAPlrUfG1rTWwAAAAAElFTkSuQmCC) no-repeat;}';
 document.getElementsByTagName('HEAD').item(0).appendChild(style);
 
 // 返回
